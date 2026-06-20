@@ -6,6 +6,14 @@ This repo extends the starter portfolio into a full team site with dynamic pages
 
 ---
 
+# Live Website
+
+The portfolio site is hosted on Vercel and can be viewed here:
+
+https://mlh-task-2-team-1-37cz.vercel.app
+
+---
+
 ## Team
 
 | Name | Role |
