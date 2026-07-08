@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Timeline{% endblock %}
+
+{% block content %}
+<section class="page-content timeline-page">
+    <h1 class="page-heading">Timeline</h1>
+    <p class="timeline-intro">Share an update from your school, career, or project journey.</p>
+
+    <div class="timeline-layout">
+        <form class="timeline-form" id="timeline-form">
+            <label class="timeline-label" for="timeline-name">Name</label>
+            <input class="timeline-input" id="timeline-name" name="name" type="text" required>
+
+            <label class="timeline-label" for="timeline-email">Email</label>
+            <input class="timeline-input" id="timeline-email" name="email" type="email" required>
+
+            <label class="timeline-label" for="timeline-content">Update</label>
+            <textarea class="timeline-input timeline-textarea" id="timeline-content" name="content" rows="5" required></textarea>
+
+            <button class="timeline-submit" type="submit">Post Update</button>
+            <p class="timeline-message" id="timeline-message" aria-live="polite"></p>
+        </form>
+
+        <section class="timeline-feed" aria-live="polite">
+            <h2 class="timeline-feed-heading">Recent Posts</h2>
+            <div class="timeline-posts" id="timeline-posts"></div>
+        </section>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const form = document.querySelector("#timeline-form");
+const postsContainer = document.querySelector("#timeline-posts");
+const message = document.querySelector("#timeline-message");
+
+function formatDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+    });
+}
+
+function renderPosts(posts) {
+    postsContainer.innerHTML = "";
+
+    if (posts.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "timeline-empty";
+        empty.textContent = "No timeline posts yet.";
+        postsContainer.appendChild(empty);
+        return;
+    }
+
+    posts.forEach((post) => {
+        const article = document.createElement("article");
+        article.className = "timeline-post";
+
+        const meta = document.createElement("p");
+        meta.className = "timeline-post-meta";
+        meta.textContent = `${post.name} · ${formatDate(post.created_at)}`;
+
+        const email = document.createElement("p");
+        email.className = "timeline-post-email";
+        email.textContent = post.email;
+
+        const content = document.createElement("p");
+        content.className = "timeline-post-content";
+        content.textContent = post.content;
+
+        article.append(meta, email, content);
+        postsContainer.appendChild(article);
+    });
+}
+
+async function loadPosts() {
+    const response = await fetch("/api/timeline_post");
+    const data = await response.json();
+    renderPosts(data.timeline_posts);
+}
+
+form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    message.textContent = "Posting...";
+
+    const response = await fetch("/api/timeline_post", {
+        method: "POST",
+        body: new FormData(form)
+    });
+
+    if (!response.ok) {
+        message.textContent = "Could not post that update.";
+        return;
+    }
+
+    form.reset();
+    message.textContent = "Posted.";
+    await loadPosts();
+});
+
+loadPosts();
+</script>
+{% endblock %}
