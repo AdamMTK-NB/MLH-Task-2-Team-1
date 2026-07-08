@@ -30,6 +30,7 @@ NAV_PAGES = [
     {"endpoint": "hobbies", "label": "Hobbies"},
     {"endpoint": "map_page", "label": "Map"},
     {"endpoint": "education", "label": "Education"},
+    {"endpoint": "timeline", "label": "Timeline"},
 ]
 
 app = Flask(__name__)
@@ -85,6 +86,11 @@ def delete_time_line_post(post_id):
 
     post.delete_instance()
     return {"message": "Timeline post deleted"}
+
+@app.route('/timeline')
+def timeline():
+    logger.info("Serving timeline page")
+    return render_template("timeline.html", title="Timeline")
 
 @app.context_processor
 def inject_globals():

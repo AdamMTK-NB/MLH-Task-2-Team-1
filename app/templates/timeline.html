@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Timeline{% endblock %}
+
+{% block content %}
+<section class="page-content timeline-page">
+    <h1 class="page-heading">Timeline</h1>
+    <p class="timeline-intro">Share updates with the team. Posts are saved to the database and shown newest first.</p>
+
+    <form id="timeline-form" class="timeline-form" novalidate>
+        <h2 class="timeline-form-heading">New post</h2>
+        <div class="timeline-form-row">
+            <label class="timeline-label" for="timeline-name">Name</label>
+            <input class="timeline-input" type="text" id="timeline-name" name="name" required
+                   placeholder="Your name" autocomplete="name">
+        </div>
+        <div class="timeline-form-row">
+            <label class="timeline-label" for="timeline-email">Email</label>
+            <input class="timeline-input" type="email" id="timeline-email" name="email" required
+                   placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="timeline-form-row">
+            <label class="timeline-label" for="timeline-content">Message</label>
+            <textarea class="timeline-textarea" id="timeline-content" name="content" required rows="4"
+                      placeholder="What's on your mind?"></textarea>
+        </div>
+        <p id="timeline-form-error" class="timeline-form-error" hidden></p>
+        <button type="submit" class="timeline-submit">Post</button>
+    </form>
+
+    <section class="timeline-feed">
+        <h2 class="timeline-feed-heading">Recent posts</h2>
+        <p id="timeline-loading" class="timeline-status">Loading posts…</p>
+        <p id="timeline-empty" class="timeline-status" hidden>No posts yet. Be the first to share something!</p>
+        <div id="timeline-posts" class="timeline-posts"></div>
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/md5.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/timeline.js') }}"></script>
+{% endblock %}
