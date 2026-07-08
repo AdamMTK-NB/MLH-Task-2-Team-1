@@ -30,6 +30,7 @@ NAV_PAGES = [
     {"endpoint": "hobbies", "label": "Hobbies"},
     {"endpoint": "map_page", "label": "Map"},
     {"endpoint": "education", "label": "Education"},
+    {"endpoint": "timeline", "label": "Timeline"},
 ]
 
 app = Flask(__name__)
@@ -100,6 +101,12 @@ def map_page():
 def education():
     logger.info("Serving education page")
     return render_template("education.html", title="Education", team_education=TEAM_EDUCATION)
+
+
+@app.route("/timeline")
+def timeline():
+    logger.info("Serving timeline page")
+    return render_template("timeline.html", title="Timeline")
 
 
 @app.errorhandler(404)
