@@ -2,7 +2,6 @@
 
 import unittest
 import os
-import datetime
 
 os.environ['TESTING'] = 'true'
 
