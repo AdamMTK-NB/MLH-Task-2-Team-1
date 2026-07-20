@@ -43,8 +43,6 @@ mydb = MySQLDatabase(
     port=3306,
 )
 
-print(mydb)
-
 class TimelinePost(Model):
     name = CharField()
     email = CharField()
@@ -54,16 +52,41 @@ class TimelinePost(Model):
     class Meta:
         database = mydb
 
-mydb.connect()
-mydb.create_tables([TimelinePost])
+# Tests rebind TimelinePost to an in-memory SQLite database.  Do not attempt
+# to connect while importing the app when no MySQL database has been
+# configured (for example, in a local test environment).
+if os.getenv("TESTING") == "true":
+    print("Running in test mode")
+    mydb = SqliteDatabase(
+        'file:memory?mode=memory&cache=shared',
+        uri=True
+    )
+else:
+    mydb = MySQLDatabase(
+        os.getenv("MYSQL_DATABASE"),
+        user=os.getenv("MYSQL_USER"),
+        password=os.getenv("MYSQL_PASSWORD"),
+        host=os.getenv("MYSQL_HOST"),
+        port=3306
+    )
+
+TimelinePost.bind(mydb, bind_refs=False, bind_backrefs=False)
+mydb.connect(reuse_if_open=True)
+mydb.create_tables([TimelinePost], safe=True)
 
 @app.route('/api/timeline_post', methods=['POST'])
 def post_time_line_post():
-    name = request.form['name']
-    email = request.form['email']
-    content = request.form['content']
+    # name = request.form['name']
+    name = request.form.get("name", "").strip()
+    if not name:
+        return {"error": "Invalid name"}, 400
+    email = request.form.get("email", "").strip()
+    if not email or "@" not in email:
+        return {"error": "Invalid email"}, 400
+    content = request.form.get("content", "").strip()
+    if not content:
+        return {"error": "Invalid content"}, 400    
     timeline_post = TimelinePost.create(name=name, email=email, content=content)
-
     return model_to_dict(timeline_post)
 
 
