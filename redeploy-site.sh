@@ -1,16 +1,16 @@
 #!/bin/bash
 
+set -e
+
 PROJECT_DIR="$HOME/MLH-Task-2-Team-1"
 
-cd "$PROJECT_DIR" || exit
+cd "$PROJECT_DIR" || exit 1
 
-git fetch
+git fetch origin
 git reset --hard origin/main
 
-python3 -m venv venv
-source venv/bin/activate
+docker compose -f docker-compose.prod.yml down
 
-python3 -m pip install -r requirements.txt
+docker compose -f docker-compose.prod.yml up -d --build
 
-sudo systemctl restart myportfolio
-sudo systemctl status myportfolio --no-pager
+docker compose -f docker-compose.prod.yml ps
