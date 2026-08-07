@@ -1,4 +1,4 @@
-name: Deploy
+name: Test and Deploy
 
 on:
   push:
@@ -7,9 +7,36 @@ on:
   workflow_dispatch:
 
 jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    env:
+      TESTING: "true"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Set up Python Virtual Environment
+        run: python -m venv python3-virtualenv
+
+      - name: Install Dependencies
+        run: python3-virtualenv/bin/pip install -r requirements.txt
+
+      - name: Run Tests
+        run: bash ./run_test.sh
+
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
+    needs: test
 
     steps:
       - name: Configure SSH
@@ -37,15 +64,31 @@ jobs:
       - name: Deploy site
         run: |
           ssh my-vps "cd '${{ secrets.PROJECT_ROOT }}' && bash redeploy-site.sh"
-      
+
       - name: Print container status
         run: |
           ssh my-vps "cd '${{ secrets.PROJECT_ROOT }}' && docker compose -f docker-compose.prod.yml ps"
-      
-      - name: Send Discord deployment notification
+
+      - name: Send Discord success notification
         if: success()
         run: |
-          curl -sS -X POST \
+          curl --fail-with-body -sS -X POST \
             -H "Content-Type: application/json" \
             -d '{"content":"🚀 Deployment Successful"}' \
+            "${{ secrets.DISCORD_WEBHOOK }}"
+
+  notify-failure:
+    name: Send Failure Notification
+    runs-on: ubuntu-latest
+    needs:
+      - test
+      - deploy
+    if: ${{ always() && (needs.test.result != 'success' || needs.deploy.result != 'success') }}
+
+    steps:
+      - name: Send Discord failure notification
+        run: |
+          curl --fail-with-body -sS -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"content":"🚨 Deployment Failed"}' \
             "${{ secrets.DISCORD_WEBHOOK }}"
